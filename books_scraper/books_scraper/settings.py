@@ -26,6 +26,11 @@ ROBOTSTXT_OBEY = True
 CONCURRENT_REQUESTS_PER_DOMAIN = 1
 DOWNLOAD_DELAY = 1
 
+ITEM_PIPELINES = {
+    "books_scraper.pipelines.BooksScraperPipeline": 300,
+}
+
+
 # Disable cookies (enabled by default)
 #COOKIES_ENABLED = False
 

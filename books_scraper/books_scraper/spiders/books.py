@@ -1,4 +1,5 @@
 import scrapy
+from books_scraper.books_scraper.items import BooksScraperItem
 
 
 class BooksSpider(scrapy.Spider):
@@ -20,26 +21,38 @@ class BooksSpider(scrapy.Spider):
 
     def parse_book(self, response):
         title = response.css("div.product_main h1::text").get()
-        price = response.css("p.price_color::text").get()
+        price_text = response.css("p.price_color::text").get()
+
+        price = None
+        if price_text:
+            price = float(price_text.replace("£", "").strip())
 
         stock_text = response.css("p.instock.availability::text").getall()
         stock_text = "".join(stock_text).strip()
 
         rating_class = response.css("p.star-rating::attr(class)").get()
-        rating = rating_class.split()[-1]
 
-        category = response.css("ul.breadcrumb li a::text").getall()[2]
+        rating = None
+        if rating_class:
+            rating = rating_class.split()[-1]
+
+        breadcrumbs = response.css("ul.breadcrumb li a::text").getall()
+        category = breadcrumbs[-1] if breadcrumbs else None
 
         description = response.css("#product_description + p::text").get()
+        description = description.strip() if description else ""
 
         upc = response.xpath("//th[text()='UPC']/following-sibling::td/text()").get()
 
-        yield {
-            "title": title,
-            "price": price,
-            "amount_in_stock": stock_text,
-            "rating": rating,
-            "category": category,
-            "description": description,
-            "upc": upc,
-        }
+        item = BooksScraperItem()
+
+        item["title"] = title
+        item["price"] = price
+        item["amount_in_stock"] = stock_text
+        item["rating"] = rating
+        item["category"] = category
+        item["description"] = description
+        item["upc"] = upc
+
+        yield item
+

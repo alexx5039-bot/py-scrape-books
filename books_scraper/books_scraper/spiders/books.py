@@ -13,7 +13,8 @@ class BooksSpider(scrapy.Spider):
 
         for book in books:
             book_url = book.css("h3 a::attr(href)").get()
-            yield response.follow(book_url, callback=self.parse_book)
+            if book_url:
+                yield response.follow(book_url, callback=self.parse_book)
 
         next_page = response.css("li.next a::attr(href)").get()
         if next_page:
@@ -21,11 +22,8 @@ class BooksSpider(scrapy.Spider):
 
     def parse_book(self, response):
         title = response.css("div.product_main h1::text").get()
-        price_text = response.css("p.price_color::text").get()
 
-        price = None
-        if price_text:
-            price = float(price_text.replace("£", "").strip())
+        price = response.css("p.price_color::text").get()
 
         stock_text = response.css("p.instock.availability::text").getall()
         stock_text = "".join(stock_text).strip()
